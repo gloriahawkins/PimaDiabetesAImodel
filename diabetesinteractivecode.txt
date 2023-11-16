@@ -1,0 +1,269 @@
+import joblib
+import numpy as np
+import pandas as pd
+import os
+import warnings
+import datetime
+from sklearn.impute import KNNImputer
+warnings.filterwarnings('ignore')
+
+pipeline = joblib.load('Diabetesmodelling.pkl')
+imputer = joblib.load('imputer.pkl')
+data = pd.read_csv("diabetesdata.csv")
+
+
+
+# Clear the console screen
+def clear_screen():
+    os.system('cls' if os.name == 'nt' else 'clear')
+
+# Function to display the menu options
+def display_menu():
+    print("_________________DIABETES IN FEMALES PROBABILITY TESTER____________")
+    print("                 Menu:")
+    print("                 1. Check for diabetes")
+    print("                 2. User guide")
+    print("                 3. Exit")
+    print()
+
+# Function to get user input for menu choice
+def get_menu_choice():
+    choice = input("Enter your choice: ")
+    return choice
+
+# Function to clear the screen and wait for user input
+def wait_for_input():
+    input("Press Enter to continue...")
+    clear_screen()
+
+def calculate_dpf(family_members, age):
+    if family_members is None or age is None:
+        return None
+    else:
+        return (family_members * 0.1) / age
+
+def calculate_bmi(weight, height):
+    if np.isnan(weight) or np.isnan(height):
+        return None
+    else:
+        return weight / ((height/100) ** 2)
+        
+def process_user_input():
+    clear_screen()
+    # Ask the user to input feature values
+    
+    
+            
+    while True:
+        print("Please enter all values as numbers only, if you are unsure, enter na or 0.")
+        print("NA/na will predicit the missing variable based on similar examples and 0 will predict as a general mean or median.")
+        pregnancies = input("Enter the patients number of pregnancies: ")
+        if pregnancies.lower() == 'na' or pregnancies.lower() == 'n a' or pregnancies.lower() == 'na'or pregnancies.lower() == 'nA'or pregnancies.lower() == 'Na'or pregnancies.lower() == 'NA':
+            pregnancies = np.nan
+            break
+        elif pregnancies.isdigit():
+            pregnancies = int(pregnancies)
+            break
+        else:
+            print("Invalid input. Please enter a valid number or 'na'.")
+
+    while True:
+        glucose = input("Please enter the patients glucose level (concentration of plasma glucose, 2hr oral glucose tolerance test): ")
+        if glucose.lower()== 'na' or glucose.lower() == 'n a' or glucose.lower() == 'na'or glucose.lower() == 'nA'or glucose.lower() == 'Na'or glucose.lower() == 'NA':
+            glucose = np.nan
+            break
+        elif glucose.isdigit() or (glucose.startswith('-') and glucose[1:].isdigit()):
+            glucose = float(glucose)
+            break
+        else:
+            print("Invalid input. Please enter a valid number or 'na'.")
+
+    while True:
+        blood_pressure = input("Enter the patients blood pressure (diastolic): ")
+        if blood_pressure.lower() == 'na' or blood_pressure.lower() == 'n a' or blood_pressure.lower() == 'na'or blood_pressure.lower() == 'nA'or blood_pressure.lower() == 'Na'or blood_pressure.lower() == 'NA':
+            blood_pressure = np.nan
+            break
+        elif blood_pressure.isdigit() or (blood_pressure.startswith('-') and blood_pressure[1:].isdigit()):
+            blood_pressure = float(blood_pressure)
+            break
+        else:
+            print("Invalid input. Please enter a valid number or 'na'.")
+
+    while True:
+        skin_thickness = input("Enter the patients skin thickness (mm): ")
+        if skin_thickness.lower() == 'na' or skin_thickness.lower() == 'n a' or skin_thickness.lower() == 'na'or skin_thickness.lower() == 'nA'or skin_thickness.lower() == 'Na'or skin_thickness.lower() == 'NA':
+            skin_thickness = np.nan
+            break
+        elif skin_thickness.isdigit() or (skin_thickness.startswith('-') and skin_thickness[1:].isdigit()):
+            skin_thickness = float(skin_thickness)
+            break
+        else:
+            print("Invalid input. Please enter a valid number or 'na'.")
+
+    while True:
+        insulin = input("Enter the patients insulin level (2 hr serum U/ml): ")
+        if insulin.lower()  == 'na' or insulin.lower() == 'na'or insulin.lower() == 'nA'or insulin.lower() == 'Na'or insulin.lower() == 'NA':
+            insulin = np.nan
+            break
+        elif insulin.isdigit() or (insulin.startswith('-') and insulin[1:].isdigit()):
+            insulin = float(insulin)
+            break
+        else:
+            print("Invalid input. Please enter a valid number or 'na'.")
+
+    while True:
+        weight = input("Enter the patients weight in kilograms: ")
+        if weight.lower() == 'na' or weight.lower() == 'na'or weight.lower() == 'nA'or weight.lower() == 'Na'or weight.lower() == 'NA':
+            weight = np.nan
+            break
+        elif weight.replace('.', '', 1).isdigit() or (weight.startswith('-') and weight[1:].replace('.', '', 1).isdigit()):
+            weight = float(weight)
+            break
+        else:
+            print("Invalid input. Please enter a valid number or 'na'.")
+
+    while True:
+        height = input("Enter the patients height in cm: ")
+        if height.lower() == 'na' or height.lower() == 'na'or height.lower() == 'nA'or height.lower() == 'Na'or height.lower() == 'NA':
+            height = np.nan
+            break
+        elif height.replace('.', '', 1).isdigit() or (height.startswith('-') and height[1:].replace('.', '', 1).isdigit()):
+            height = float(height)
+            break
+        else:
+            print("Invalid input. Please enter a valid number or 'na'.")
+
+    while True:
+        family_members = input("Enter the number of the patients family members with diabetes: ")
+        if family_members.lower() == 'na' or family_members.lower() == 'na'or family_members.lower() == 'nA'or family_members.lower() == 'Na'or family_members.lower() == 'NA':
+            family_members = np.nan
+            break
+        elif family_members.isdigit():
+            family_members = int(family_members)
+            break
+        else:
+            print("Invalid input. Please enter a valid number or 'na'.")
+
+    while True:
+        age = input("Enter the patients age: ")
+        if age.lower() == 'na' or age.lower() == 'na'or age.lower() == 'nA'or age.lower() == 'Na'or age.lower() == 'NA':
+            age = np.nan
+            break
+        elif age.isdigit():
+            age = int(age)
+            break
+        else:
+            print("Invalid input. Please enter a valid number or 'na'.")
+
+    # Calculate BMI for the user
+    if not np.isnan(weight) and not np.isnan(height):
+        bmi = weight / ((height/100) ** 2)
+    else:
+        bmi = np.nan
+    print("The patients BMI is", bmi)
+
+    # Calculate the Diabetes Pedigree Function (DPF) for the user
+    if not np.isnan(family_members) and not np.isnan(age):
+        diabetes_pedigree_function = (family_members * 0.1) / age
+    else:
+        diabetes_pedigree_function = np.nan
+    print("The patients diabetes pedigree function is", diabetes_pedigree_function)
+    input("Press Enter to continue...")
+    clear_screen()
+
+    # Dictionary for user inputs
+    user_data = {
+        'Pregnancies': [pregnancies],
+        'Glucose': [glucose],
+        'BloodPressure': [blood_pressure],
+        'SkinThickness': [skin_thickness],
+        'Insulin': [insulin],
+        'BMI': [bmi],
+        'DiabetesPedigreeFunction': [diabetes_pedigree_function],
+        'Age': [age]
+    }
+
+    user_df = pd.DataFrame(user_data, index=[np.nan])
+    
+    # Replace nan with median or mean from specific coloums incase the user enters 0 by accident.....
+    user_df["SkinThickness"] = user_df["SkinThickness"].replace(0, user_df["SkinThickness"].median())
+    user_df["Glucose"] = user_df["Glucose"].replace(0, user_df["Glucose"].mean())
+    user_df["BMI"] = user_df["BMI"].replace(0, user_df["BMI"].median())
+    user_df["BloodPressure"] = user_df["BloodPressure"].replace(0, user_df["BloodPressure"].mean())
+    user_df["Insulin"] = user_df["Insulin"].replace(0, user_df["Insulin"].median())
+    
+    
+
+    # Prepare the data for prediction
+    X_user = imputer.transform(user_df)
+
+    # Make predictions using the trained model
+    prediction = pipeline.predict(X_user)
+
+
+    # Convert X_user to a pandas DataFrame
+    X_user_df = pd.DataFrame(X_user, columns=user_df.columns)
+
+    # Make predictions using the trained model
+    prediction = pipeline.predict(X_user_df)
+    
+    print("DATA: please note that some of these variables may have been predicted if you entered NA")
+    for variable, value in X_user_df.items():
+        print(f"{variable}: {value[0]}")
+    print()
+    
+    if prediction[0] == 0:
+        print("Based on the provided information, you do not have diabetes.")
+    else:
+        print("Based on the information you have provided, you have diabetes.")
+        
+    save_data = input("Do you want to save this data as a csv file (patient_data.csv)? (y/n): ")
+    if save_data.lower() == 'y' or save_data.lower() == 'Y':
+        # Save the data to a file 
+        user_df.to_csv('patient_data.csv', mode='a', header=not os.path.exists('patient_data.csv'), index=False)
+    else:
+            print("Invalid input. Please enter y or n.")
+
+    # Clear the user_data dictionary for the next patient
+    user_data.clear()
+
+def display_instructions():
+    clear_screen()
+    print("              Please note that this program is intended for the calculation of diabetes probability in Females above 21 years of age in a clinical setting.")
+    print("              Instructions:                             ")
+    print("              1. You will be asked to input the following variables please inpupt integer variables as a number without measurement details.")
+    print("              2. Pregnancies (number of pregnancies as an integer).")
+    print("              3. Glucose level (concentration of plasma glucose, 2hr oral glucose tolerance test).")
+    print("              4. Blood pressure (diastolic blood pressure, mm Hg).")
+    print("              5. Skin thickness (mm).")
+    print("              6. Insulin level (2-hr serum (U/ml).")
+    print("              7. Weight (Kg).")
+    print("              8. Height (cm).")
+    print("              9. Number of family members with diabetes (calculate diabetese pedigree function, these must be BLOOD related family members.")
+    print("              10. Age (years).")
+    print("              11. The program will calculate the BMI and diabetes pedigree function.")
+    print("              12. If you do not know the answer, please enter NA  or 0- note that missing variables will decrease the accuracy of your test")
+    print("              13. Please enter all values as numbers only, if you are unsure, enter na or 0.")
+    print("              14.  NA/na will predicit the missing variable based on similar examples and 0 will predict as a general mean or median.")
+    print("              15. Based on the provided information, the program will predict if you have diabetes or not.")
+    print("              16. You will be asked if you want to save the data, this will be saved as patient_data.csv")
+    print("              17. The data will then clear and you will return to the main menu")
+    print()
+
+# Main program loop
+while True:
+    clear_screen()
+    display_menu()
+    choice = get_menu_choice()
+
+    if choice == '1':
+        process_user_input()
+        wait_for_input()
+    elif choice == '2':
+        display_instructions()
+        wait_for_input()
+    elif choice == '3':
+        break
+    else:
+        print("Invalid choice. Please try again.")
+        wait_for_input()

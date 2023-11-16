@@ -1,0 +1,141 @@
+
+import numpy as np 
+import pandas as pd 
+from sklearn.model_selection import train_test_split
+from sklearn.model_selection import cross_val_score
+from sklearn import tree
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import f1_score,classification_report
+from sklearn.metrics import accuracy_score
+
+from sklearn.compose import make_column_transformer
+
+from sklearn.ensemble import RandomForestClassifier
+
+from sklearn.impute import KNNImputer
+from sklearn.pipeline import make_pipeline
+
+
+
+# Plots
+import seaborn as sns
+sns.set_style("darkgrid")
+import matplotlib.pyplot as plt
+
+#ignore warning messages 
+import warnings
+warnings.filterwarnings('ignore')
+
+#loading the data
+data = pd.read_csv("diabetesdata.csv")
+
+print("Number of Outcome 0:", (data['Outcome'] == 0).sum())
+print("Number of Outcome 1:", (data['Outcome'] == 1).sum())
+
+#getting correlations for each feature in the dataset
+corrmat=data.corr()
+top_corr_features= corrmat.index
+plt.figure(figsize=(10,10))
+
+
+#plot heat map for correlation 
+g=sns.heatmap(data[top_corr_features].corr(),annot=True,cmap="RdYlGn")
+plt.show()
+
+#clean- replacing 0 values with mean or median depending on the data skew.
+data["SkinThickness"] = data["SkinThickness"].replace(0, np.median(data["SkinThickness"]))
+data["Glucose"] = data["Glucose"].replace(0, np.mean(data["Glucose"])) #only one zero value so replace with mean
+data["BMI"] = data["BMI"].replace(0, np.median(data["BMI"]))
+data["BloodPressure"] = data["BloodPressure"].replace(0, np.mean(data["BloodPressure"]))#blood pressure isnt skewed so i didnt replace with median, i used mean instead.
+data ["Insulin"]= data["Insulin"].replace(0, np.median(data["Insulin"]))
+
+#outlier removal
+Q1=data.quantile(0.25)
+Q3=data.quantile(0.75)
+IQR=Q3-Q1
+#outlier remove
+df_out = data[~((data < (Q1 - 1.5 * IQR)) |(data > (Q3 + 1.5 * IQR))).any(axis=1)]
+data.shape,df_out.shape
+#splitting the data to independent and dependent variables
+X = df_out.drop(['Outcome'], axis=1)
+Y = df_out['Outcome']
+
+
+#plot heat map for new correlations after data cleaning
+g=sns.heatmap(data[top_corr_features].corr(),annot=True,cmap="RdYlGn")
+plt.show()
+
+
+#oversampling
+from imblearn.over_sampling import RandomOverSampler
+# transform the dataset
+oversample = RandomOverSampler()
+X,Y = oversample.fit_resample(X,Y)
+print("Number of Outcome 0 after oversampling:", (Y == 0).sum())
+print("Number of Outcome 1 after oversampling:", (Y == 1).sum())
+
+
+np.random.seed(42)
+
+
+#train, test, split 
+X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, random_state=42)
+
+# Create an instance of KNNImputer for the use for my interactive software incase of nan values
+imputer = KNNImputer(n_neighbors=10)
+
+# fit on the dataset
+imputer.fit(X_train)
+
+# Create a pipeline with imputation
+preprocessor = make_column_transformer(
+    (imputer, ['Pregnancies', 'Glucose', 'BloodPressure', 'SkinThickness', 'Insulin', 'BMI', 'DiabetesPedigreeFunction', 'Age']),
+    remainder='passthrough'  # Pass through the remaining columns (if any)
+)
+
+#pipleline 
+pipeline = make_pipeline(preprocessor, RandomForestClassifier(n_estimators=500, random_state=42))
+
+# Fit the pipeline on the training data
+pipeline.fit(X_train, y_train)
+
+
+#defining kfold
+from sklearn.model_selection import KFold
+
+kfold = KFold(n_splits=4, shuffle=True, random_state=42)
+
+
+
+#random forest
+from sklearn.ensemble import RandomForestClassifier
+
+rf = RandomForestClassifier(n_estimators=1000, random_state=42)
+rf.fit(X_train, y_train)
+y_pred = rf.predict(X_test)
+accuracy = accuracy_score(y_test, y_pred)
+# Perform cross-validation and obtain the scores
+cv_scores = cross_val_score(rf, X_train, y_train, cv=kfold, scoring='accuracy')
+print(rf.score(X_test, y_test))
+
+print(classification_report(y_test, y_pred))
+plt.rcParams["figure.figsize"] = (6, 5)
+plt.rcParams["figure.dpi"] = (150)
+#plotting confusion matrix heatmap to visualise True and false negatives and positives 
+#note that 1 represents diabetes and 0 represents no diabetes
+sns.heatmap(confusion_matrix(y_test, y_pred), annot=True, fmt='2.0f')
+plt.show()
+
+print("Test Accuracy : ", accuracy, "\n")
+
+print("Cross-Validation Scores:", cv_scores)
+
+
+
+#saving my model and imputer to use in the interactive software
+import joblib
+joblib.dump(rf, 'Diabetesmodelling.pkl')
+joblib.dump(imputer, 'imputer.pkl')
+
+
+
